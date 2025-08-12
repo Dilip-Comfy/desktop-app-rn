@@ -1,14 +1,11 @@
 import React from 'react';
-import { SafeAreaView, Text, StatusBar, StyleSheet } from 'react-native';
+import {SafeAreaView, Text, StatusBar, StyleSheet} from 'react-native';
+import InitialScreen from './src/views/InitialScreen';
+import SecretPhrase from './src/views/SecretPhrase';
+import ConfirmSecretPhrase from './src/views/ConfirmSecretPhrase';
 
 const App = () => {
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      <Text style={styles.helloText}>Hello, World!</Text>
- <Text style={styles.helloText}>Desktop Application</Text>
-    </SafeAreaView>
-  );
+  return <ConfirmSecretPhrase />;
 };
 
 const styles = StyleSheet.create({

@@ -11,8 +11,11 @@
     "windows": "npx @react-native-community/cli run-windows"
   },
   "dependencies": {
+    "lucide-react-native": "^0.539.0",
     "react": "19.0.0",
     "react-native": "0.78.0",
+    "react-native-size-matters": "^0.4.2",
+    "react-native-svg": "^15.12.1",
     "react-native-windows": "0.78.0"
   },
   "devDependencies": {
@@ -31,10 +34,10 @@
     "@types/react-test-renderer": "^19.0.0",
     "eslint": "^8.19.0",
     "jest": "^29.6.3",
+    "metro-config": "^0.81.5",
     "prettier": "2.8.8",
     "react-test-renderer": "19.0.0",
-    "typescript": "5.0.4",
-    "metro-config": "^0.81.5"
+    "typescript": "5.0.4"
   },
   "engines": {
     "node": ">=18"
