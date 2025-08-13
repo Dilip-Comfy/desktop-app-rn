@@ -1,23 +1,19 @@
+/* eslint-disable react-native/no-inline-styles */
 import React from 'react';
-import {SafeAreaView, Text, StatusBar, StyleSheet} from 'react-native';
-import InitialScreen from './src/views/InitialScreen';
-import SecretPhrase from './src/views/SecretPhrase';
-import ConfirmSecretPhrase from './src/views/ConfirmSecretPhrase';
+import {View} from 'react-native';
+import Routes from './src/navigation/routes';
 
-const App = () => {
-  return <ConfirmSecretPhrase />;
+// import { Provider as PaperProvider } from 'react-native-paper';
+// import { ThemeProvider } from '@theme/themeContext';
+// import { MenuProvider } from 'react-native-popup-menu';
+
+// import { NetworkProvider, useNetwork } from '@utils/NetworkProvider';
+// import NoInternetModal from '@utils/NoInternetModal';
+
+const App: React.FC = () => {
+  // const { isConnected } = useNetwork();
+
+  return <Routes />;
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  helloText: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-});
 
 export default App;

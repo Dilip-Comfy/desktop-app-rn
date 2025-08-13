@@ -9,9 +9,10 @@ import {
 import {moderateScale} from 'react-native-size-matters';
 import {themeColors} from '../../styles/Colors';
 import CustomButton from '../../components/CustomButton';
+import CustomLucideIcon from '../../components/CustomLucideIcon';
 // import CustomLucideIcon from '../../components/CustomLucideIcon';
 
-const SecretPhrase = ({}) => {
+const SecretPhrase = ({navigation}) => {
   const phrase = [
     'purity',
     'notice',
@@ -31,13 +32,14 @@ const SecretPhrase = ({}) => {
     <View style={styles.container}>
       <View style={styles.mainContainer}>
         {/* Back Button */}
-        <TouchableOpacity style={styles.backButton} activeOpacity={0.7}>
-          {/* <CustomLucideIcon name="ArrowLeft" color={themeColors.text} /> */}
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+          activeOpacity={0.7}>
+          <CustomLucideIcon name="ArrowLeft" color={themeColors.white} />
         </TouchableOpacity>
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}>
+        <View>
           {/* Step Info */}
           <Text style={styles.stepText}>Step 2 of 3</Text>
           <Text style={styles.title}>
@@ -54,7 +56,11 @@ const SecretPhrase = ({}) => {
           <Text
             style={[
               styles.stepText,
-              {color: themeColors.themeRed, marginVertical: moderateScale(15)},
+              {
+                color: themeColors.themeRed,
+                marginVertical: moderateScale(15),
+                marginBottom: moderateScale(10),
+              },
             ]}>
             Don’t share it with anyone, ever.
           </Text>
@@ -69,11 +75,12 @@ const SecretPhrase = ({}) => {
               </View>
             ))}
           </View>
-        </ScrollView>
+        </View>
 
         {/* Continue Button */}
         <CustomButton
           text={'Continue'}
+          onPress={() => navigation.navigate('ConfirmSecretPhrase')}
           backgroundColor={themeColors.white}
           btnTxtStyle={{
             fontSize: moderateScale(12),
@@ -101,10 +108,12 @@ const styles = StyleSheet.create({
     backgroundColor: themeColors.backgroundDark,
     paddingHorizontal: moderateScale(16),
     paddingTop: moderateScale(20),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   mainContainer: {
     width: '50%',
-    alignSelf: 'center',
+
     borderWidth: 1,
     borderColor: themeColors.grayBoxDark,
     padding: moderateScale(10),

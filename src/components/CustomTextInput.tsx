@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, forwardRef } from 'react';
+import React, {useState, forwardRef} from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,8 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import CustomVectorIcons from './CustomVectorIcons';
-import { useTheme } from '@theme/themeContext';
-import FontFamily from '@assets/Fonts/FontFamily';
-import { moderateScale } from 'react-native-size-matters';
+import {moderateScale} from 'react-native-size-matters';
+import {themeColors} from '../styles/Colors';
 
 interface CustomTextInputProps extends TextInputProps {
   title?: string;
@@ -64,10 +62,8 @@ const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(
     },
     ref,
   ) => {
-    const { theme, isDark } = useTheme();
     const [isFocused, setIsFocused] = useState(false);
     const [showPassword, setShowPassword] = useState(!secureTextEntry);
-    const styles = getStyles(theme);
 
     const handleFocus = () => {
       setIsFocused(true);
@@ -91,19 +87,18 @@ const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(
             styles.inputContainer,
             {
               borderColor: hasError
-                ? theme.themeRed
+                ? themeColors.themeRed
                 : showBorderOnFocus && isFocused
                 ? focusBorderColor
                 : defaultBorderColor,
             },
             customInputContainerStyle,
-          ]}
-        >
+          ]}>
           {icon}
           <TextInput
             style={[styles.input, inputStyle]}
             placeholder={placeholder}
-            placeholderTextColor={theme.grayLight}
+            placeholderTextColor={themeColors.grayLight}
             value={value}
             ref={ref}
             onSubmitEditing={onSubmitEditing}
@@ -118,12 +113,12 @@ const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(
           />
           {secureTextEntry && (
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <CustomVectorIcons
+              {/* <CustomVectorIcons
                 name={showPassword ? 'eye-off' : 'eye'}
                 size={moderateScale(25)}
                 color={theme.gray}
                 iconSet="Ionicons"
-              />
+              /> */}
             </TouchableOpacity>
           )}
 
@@ -138,50 +133,48 @@ const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(
   },
 );
 
-const getStyles = (theme: any) =>
-  StyleSheet.create({
-    container: {
-      marginBottom: moderateScale(25),
-    },
-    title: {
-      fontSize: moderateScale(12),
-      fontFamily: FontFamily.UbuntuMedium,
-      marginBottom: moderateScale(5),
-      color: theme.authentTitle,
-    },
-    outerContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: theme.black,
-      borderRadius: moderateScale(10),
-      backgroundColor: theme.background,
-    },
-    inputContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: '#E8E8E8',
-      borderRadius: moderateScale(10),
-      height: moderateScale(50),
-      paddingHorizontal: moderateScale(5),
-      backgroundColor: theme.white,
-    },
-    input: {
-      flex: 1,
-      height: moderateScale(45),
-      paddingVertical: 0,
-      fontSize: moderateScale(14),
-      fontFamily: FontFamily.UbuntuMedium,
-      color: theme.black,
-      marginHorizontal: moderateScale(5),
-    },
-    errorText: {
-      marginTop: moderateScale(2),
-      fontSize: moderateScale(14),
-      color: theme.themeRed,
-      fontFamily: FontFamily.UbuntuMedium,
-    },
-  });
+const styles = StyleSheet.create({
+  container: {
+    marginBottom: moderateScale(25),
+  },
+  title: {
+    fontSize: moderateScale(12),
+
+    marginBottom: moderateScale(5),
+    color: themeColors.authentTitle,
+  },
+  outerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: themeColors.black,
+    borderRadius: moderateScale(10),
+    backgroundColor: themeColors.background,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+    borderRadius: moderateScale(10),
+    height: moderateScale(50),
+    paddingHorizontal: moderateScale(5),
+    backgroundColor: themeColors.white,
+  },
+  input: {
+    flex: 1,
+    height: moderateScale(45),
+    paddingVertical: 0,
+    fontSize: moderateScale(14),
+
+    color: themeColors.black,
+    marginHorizontal: moderateScale(5),
+  },
+  errorText: {
+    marginTop: moderateScale(2),
+    fontSize: moderateScale(14),
+    color: themeColors.themeRed,
+  },
+});
 
 export default CustomTextInput;

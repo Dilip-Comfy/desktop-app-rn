@@ -7,64 +7,63 @@ import {moderateScale} from 'react-native-size-matters';
 import CustomButton from '../../components/CustomButton';
 import {themeColors} from '../../styles/Colors';
 
-export class InitialScreen extends Component {
-  render() {
-    return (
-      <ImageBackground source={IMAGES.ic_background} style={{flex: 1}}>
-        <StatusBar barStyle="dark-content" />
-        <View style={{flex: 1, justifyContent: 'center'}}>
-          <View
+const InitialScreen: React.FC = ({navigation}) => {
+  return (
+    <ImageBackground source={IMAGES.ic_background} style={{flex: 1}}>
+      <StatusBar barStyle="dark-content" />
+      <View style={{flex: 1, justifyContent: 'center'}}>
+        <View
+          style={{
+            alignSelf: 'center',
+            width: '50%',
+            height: '60%',
+            //   backgroundColor: 'rgba(25    5,255,255,0.3)',
+            backgroundColor: themeColors.white,
+            borderRadius: moderateScale(15),
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <Text
+            style={{
+              fontSize: moderateScale(24),
+              fontWeight: '700',
+              color: '#3d065f',
+              textAlign: 'center',
+              width: moderateScale(100),
+            }}>
+            Let's get started!
+          </Text>
+
+          <CustomButton
+            text={'Create A New Wallet'}
+            onPress={() => navigation.navigate('SecretPhrase')}
+            backgroundColor={'#121314'}
+            btnTxtStyle={{fontSize: moderateScale(12)}}
+            height={moderateScale(35)}
+            width={'80%'}
             style={{
               alignSelf: 'center',
-              width: '35%',
-              height: '60%',
-              //   backgroundColor: 'rgba(25    5,255,255,0.3)',
-              backgroundColor: themeColors.white,
-              borderRadius: moderateScale(15),
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-            <Text
-              style={{
-                fontSize: moderateScale(24),
-                fontWeight: '700',
-                color: '#3d065f',
-                textAlign: 'center',
-                width: moderateScale(100),
-              }}>
-              Let's get started!
-            </Text>
-
-            <CustomButton
-              text={'Create A New Wallet'}
-              backgroundColor={'#121314'}
-              btnTxtStyle={{fontSize: moderateScale(12)}}
-              height={moderateScale(35)}
-              width={'80%'}
-              style={{
-                alignSelf: 'center',
-                marginTop: moderateScale(25),
-                borderRadius: moderateScale(5),
-              }}
-            />
-            <CustomButton
-              text={'I have an existing wallet'}
-              backgroundColor={'#34ade2'}
-              //   backgroundColor={themeColors.themeLight}
-              btnTxtStyle={{fontSize: moderateScale(12)}}
-              height={moderateScale(35)}
-              width={'80%'}
-              style={{
-                alignSelf: 'center',
-                marginTop: moderateScale(10),
-                borderRadius: moderateScale(5),
-              }}
-            />
-          </View>
+              marginTop: moderateScale(25),
+              borderRadius: moderateScale(5),
+            }}
+          />
+          <CustomButton
+            text={'I have an existing wallet'}
+            onPress={() => navigation.navigate('ImportSecretPhrase')}
+            backgroundColor={'#34ade2'}
+            btnTxtStyle={{fontSize: moderateScale(12)}}
+            height={moderateScale(35)}
+            width={'80%'}
+            style={{
+              alignSelf: 'center',
+              marginTop: moderateScale(10),
+              borderRadius: moderateScale(5),
+            }}
+          />
         </View>
-      </ImageBackground>
-    );
-  }
-}
+      </View>
+    </ImageBackground>
+  );
+};
 
 export default InitialScreen;

@@ -3,90 +3,73 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
   StyleSheet,
+  TextInput,
+  ScrollView,
 } from 'react-native';
 import {moderateScale} from 'react-native-size-matters';
 import CustomLucideIcon from '../../components/CustomLucideIcon';
 import {themeColors} from '../../styles/Colors';
 import CustomButton from '../../components/CustomButton';
 
-const ConfirmSecretPhrase = ({navigation}) => {
-  const [selectedWords, setSelectedWords] = useState({});
-  const phraseOrder = Array.from({length: 12}, (_, i) => i + 1);
-  const missingWords = [
-    'notice',
-    'abuse',
-    'olympic',
-    'lorem',
-    'bucket',
-    'meet',
-    'rush',
-    'witch',
-    'color',
-    'run',
-    'metal',
-    'note',
-  ];
+const ImportSecretPhrase = ({navigation}) => {
+  const [phraseWords, setPhraseWords] = useState([]);
+  const [inputValue, setInputValue] = useState('');
 
-  const handleSelect = word => {
-    const emptySlot = phraseOrder.find(num => !selectedWords[num]);
-    if (emptySlot) {
-      setSelectedWords(prev => ({...prev, [emptySlot]: word}));
+  const handleTextChange = text => {
+    // If space is pressed, push word to array
+    if (text.endsWith(' ')) {
+      const newWord = text.trim();
+      if (newWord.length > 0) {
+        setPhraseWords(prev => [...prev, newWord]);
+      }
+      setInputValue('');
+    } else {
+      setInputValue(text);
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
       <View style={styles.mainContainer}>
+        {/* Back Button */}
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
           activeOpacity={0.7}>
           <CustomLucideIcon name="ArrowLeft" color={themeColors.white} />
         </TouchableOpacity>
-        <View>
-          {/* Step Info */}
-          <Text style={styles.stepText}>Step 3 of 3</Text>
-          <Text style={styles.title}>
-            Confirm your Secret{'\n'}Recovery Phrase
-          </Text>
 
-          {/* Description */}
-          <Text style={styles.description}>
-            Select the missing words in the correct order.
-          </Text>
+        {/* <Text style={styles.stepText}>Step 3 of 3</Text> */}
+        <Text style={styles.title}>
+          Confirm your Secret{'\n'}Recovery Phrase
+        </Text>
+        <Text style={styles.description}>
+          Type your secret phrase, separating each word with a space.
+        </Text>
 
-          {/* Phrase Grid */}
+        {/* Phrase Display */}
+        <ScrollView style={{maxHeight: moderateScale(200)}}>
           <View style={styles.grid}>
-            {phraseOrder.map(num => (
-              <View
-                key={num}
-                style={[
-                  styles.phraseBox,
-                  selectedWords[num] && styles.filledBox,
-                ]}>
+            {phraseWords.map((word, index) => (
+              <View key={index} style={styles.phraseBox}>
                 <Text style={styles.phraseText}>
-                  {num}. {selectedWords[num] ? selectedWords[num] : '*****'}
+                  {index + 1}. {word}
                 </Text>
               </View>
             ))}
           </View>
+        </ScrollView>
 
-          {/* Word Selection */}
-          <View style={styles.wordOptions}>
-            {missingWords.map((word, idx) => (
-              <TouchableOpacity
-                key={idx}
-                style={styles.wordButton}
-                onPress={() => handleSelect(word)}
-                activeOpacity={0.7}>
-                <Text style={styles.wordButtonText}>{word}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+        {/* Input Field */}
+        <TextInput
+          style={styles.input}
+          placeholder="Type your phrase here..."
+          placeholderTextColor={themeColors.grayLight}
+          value={inputValue}
+          onChangeText={handleTextChange}
+          autoCapitalize="none"
+        />
 
         <CustomButton
           text={'Continue'}
@@ -110,7 +93,7 @@ const ConfirmSecretPhrase = ({navigation}) => {
   );
 };
 
-export default ConfirmSecretPhrase;
+export default ImportSecretPhrase;
 
 const styles = StyleSheet.create({
   container: {
@@ -129,11 +112,9 @@ const styles = StyleSheet.create({
     padding: moderateScale(10),
     borderRadius: moderateScale(10),
   },
-
   backButton: {
     marginBottom: moderateScale(10),
   },
-
   stepText: {
     fontFamily: 'UrbanistSemiBold',
     fontSize: moderateScale(13),
@@ -157,46 +138,28 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    // marginBottom: moderateScale(20),
+    justifyContent: 'flex-start',
   },
   phraseBox: {
-    backgroundColor: themeColors.boxBackground2Dark,
-    paddingVertical: moderateScale(8),
-    paddingHorizontal: moderateScale(12),
-    borderRadius: moderateScale(6),
-    marginBottom: moderateScale(10),
-    width: '32%',
-    alignItems: 'center',
     borderWidth: 1,
-    borderColor: themeColors.gray,
-  },
-  filledBox: {
-    borderWidth: 2,
     borderColor: themeColors.themeLight,
+    paddingVertical: moderateScale(5),
+    paddingHorizontal: moderateScale(10),
+    borderRadius: moderateScale(6),
+    margin: moderateScale(5),
   },
   phraseText: {
     fontFamily: 'UrbanistSemiBold',
     fontSize: moderateScale(12),
     color: themeColors.white,
   },
-  wordOptions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: moderateScale(10),
-  },
-  wordButton: {
-    backgroundColor: themeColors.themeGrayDark,
-    paddingVertical: moderateScale(3),
-    width: '32%',
-    alignItems: 'center',
-    borderRadius: moderateScale(3),
-    marginVertical: moderateScale(5),
-  },
-  wordButtonText: {
-    fontFamily: 'UrbanistSemiBold',
-    fontSize: moderateScale(12),
-    color: themeColors.grayLight,
+  input: {
+    backgroundColor: themeColors.boxBackground2Dark,
+    color: themeColors.white,
+    paddingVertical: moderateScale(8),
+    paddingHorizontal: moderateScale(12),
+    borderRadius: moderateScale(6),
+    marginTop: moderateScale(10),
+    minHeight: moderateScale(110),
   },
 });

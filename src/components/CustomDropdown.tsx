@@ -1,10 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
-import FontFamily from '@assets/Fonts/FontFamily';
-import { useTheme } from '@theme/themeContext';
+
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { Dropdown } from 'react-native-element-dropdown';
-import { moderateScale } from 'react-native-size-matters';
+import {StyleSheet, Text, View} from 'react-native';
+import {Dropdown} from 'react-native-element-dropdown';
+import {moderateScale} from 'react-native-size-matters';
+import {themeColors} from '../styles/Colors';
+import CustomLucideIcon from './CustomLucideIcon';
 
 const CustomDropdown: React.FC<any> = ({
   title,
@@ -18,10 +19,13 @@ const CustomDropdown: React.FC<any> = ({
   customDropdownContainerStyle,
   onFocus,
   titleStyle,
+  itemTextStyle,
+  placeholderTextStyle,
+  leftIconName = 'Search',
+  iconColor = themeColors.black,
+  iconStyle = {},
+  iconSize = moderateScale(14),
 }) => {
-  const { theme } = useTheme();
-  const styles = getStyles(theme);
-
   return (
     <View
       style={[
@@ -29,8 +33,7 @@ const CustomDropdown: React.FC<any> = ({
           width: '100%',
         },
         customDropdownContainerStyle,
-      ]}
-    >
+      ]}>
       {title && <Text style={[styles.title, titleStyle]}>{title}</Text>}
       <Dropdown
         maxHeight={maxHeight}
@@ -39,67 +42,75 @@ const CustomDropdown: React.FC<any> = ({
             height: moderateScale(45),
             borderRadius: 10,
             width: '100%',
-            backgroundColor: theme.white,
+            backgroundColor: themeColors.white,
           },
           customDropdownStyle,
         ]}
+        renderLeftIcon={() => (
+          <CustomLucideIcon
+            name={leftIconName}
+            color={iconColor}
+            style={iconStyle}
+            size={iconSize}
+          />
+        )}
         data={data}
         labelField="label"
         valueField="value"
         placeholder={placeholder}
         value={value}
         onFocus={onFocus}
-        iconColor={theme.black}
+        iconColor={themeColors.black}
         iconStyle={{
-          height: moderateScale(20),
-          width: moderateScale(20),
+          height: moderateScale(0),
+          width: moderateScale(0),
         }}
         onChange={onChange}
-        selectedTextStyle={styles.selectedText}
-        placeholderStyle={styles.placeholder}
+        selectedTextStyle={[styles.selectedText, itemTextStyle]}
+        placeholderStyle={[styles.placeholder, placeholderTextStyle]}
         containerStyle={{
           backgroundColor: 'white',
           borderRadius: 10,
           width: '86%',
         }}
-        itemContainerStyle={{ backgroundColor: 'white' }}
-        itemTextStyle={{ fontSize: moderateScale(14), color: theme.black }}
+        itemContainerStyle={{backgroundColor: 'white'}}
+        itemTextStyle={[
+          {fontSize: moderateScale(10), color: themeColors.black},
+          itemTextStyle,
+        ]}
       />
     </View>
   );
 };
 
-const getStyles = (theme: any) =>
-  StyleSheet.create({
-    dropdown: {
-      height: 50,
-      borderRadius: 10,
-      width: '100%',
-      borderWidth: 1,
-      borderColor: theme.borderColor,
-      backgroundColor: 'white',
-      paddingHorizontal: 15,
-    },
-    title: {
-      fontSize: moderateScale(12),
-      fontFamily: FontFamily.UbuntuMedium,
-      marginBottom: moderateScale(5),
-      color: theme.authentTitle,
-    },
-    dropdownBox: {
-      backgroundColor: 'white',
-      // borderRadius: 10,
-    },
-    placeholder: {
-      color: theme.gray,
-      fontSize: moderateScale(14),
-      fontFamily: FontFamily.UbuntuMedium,
-    },
-    selectedText: {
-      fontSize: moderateScale(14),
-      color: theme.black,
-      fontFamily: FontFamily.UbuntuMedium,
-    },
-  });
+const styles = StyleSheet.create({
+  dropdown: {
+    height: 50,
+    borderRadius: 10,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: themeColors.borderColor,
+    backgroundColor: 'white',
+    paddingHorizontal: 15,
+  },
+  title: {
+    fontSize: moderateScale(12),
+
+    marginBottom: moderateScale(5),
+    color: themeColors.authentTitle,
+  },
+  dropdownBox: {
+    backgroundColor: 'white',
+    // borderRadius: 10,
+  },
+  placeholder: {
+    color: themeColors.gray,
+    fontSize: moderateScale(14),
+  },
+  selectedText: {
+    fontSize: moderateScale(14),
+    color: themeColors.black,
+  },
+});
 
 export default CustomDropdown;
