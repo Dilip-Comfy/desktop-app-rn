@@ -1,96 +1,130 @@
-import React, {useState} from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, TouchableOpacity, StyleSheet, Alert} from 'react-native';
 import {moderateScale} from 'react-native-size-matters';
 import CustomLucideIcon from '../../components/CustomLucideIcon';
 import {themeColors} from '../../styles/Colors';
 import CustomButton from '../../components/CustomButton';
 
-const ConfirmSecretPhrase = ({navigation}) => {
-  const [selectedWords, setSelectedWords] = useState({});
-  const phraseOrder = Array.from({length: 12}, (_, i) => i + 1);
-  const missingWords = [
-    'notice',
-    'abuse',
-    'olympic',
-    'lorem',
-    'bucket',
-    'meet',
-    'rush',
-    'witch',
-    'color',
-    'run',
-    'metal',
-    'note',
-  ];
+const ConfirmSecretPhrase = ({route, navigation}) => {
+  const {generatedPhrases} = route.params; // ✅ from previous screen
+  const phraseWords = generatedPhrases.split(' '); // original 12/24 words
+  // shuffle words
+  const shuffled = [...phraseWords].sort(() => Math.random() - 0.5);
 
-  const handleSelect = word => {
-    const emptySlot = phraseOrder.find(num => !selectedWords[num]);
-    if (emptySlot) {
-      setSelectedWords(prev => ({...prev, [emptySlot]: word}));
-    }
+  const [availableWords, setAvailableWords] = useState(shuffled);
+  const [selectedWords, setSelectedWords] = useState([]);
+
+  const handleSelectWord = (word, index) => {
+    setSelectedWords([...selectedWords, word]);
+    const updated = [...availableWords];
+    updated[index] = null; // ✅ keep space but hide word
+    setAvailableWords(updated);
+  };
+
+  const handleDeselectWord = (word, index) => {
+    // remove from selected
+    const updatedSelected = [...selectedWords];
+    const removedWord = updatedSelected.splice(index, 1)[0];
+    setSelectedWords(updatedSelected);
+
+    // put back into available (replace first null slot)
+    const updated = [...availableWords];
+    const emptyIndex = updated.indexOf(null);
+    if (emptyIndex !== -1) updated[emptyIndex] = removedWord;
+    else updated.push(removedWord);
+    setAvailableWords(updated);
+  };
+  const handleClearAll = () => {
+    setSelectedWords([]); // reset grid
+    setAvailableWords(shuffled); // restore original shuffled list
   };
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
       <View style={styles.mainContainer}>
+        {/* Back Button */}
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
           activeOpacity={0.7}>
           <CustomLucideIcon name="ArrowLeft" color={themeColors.white} />
         </TouchableOpacity>
-        <View>
-          {/* Step Info */}
-          <Text style={styles.stepText}>Step 3 of 3</Text>
-          <Text style={styles.title}>
-            Confirm your Secret{'\n'}Recovery Phrase
+
+        {/* Header */}
+        <Text style={styles.stepText}>Step 3 of 3</Text>
+        <Text style={styles.title}>
+          Confirm your Secret{'\n'}Recovery Phrase
+        </Text>
+
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <Text style={[styles.description, {flex: 1}]}>
+            Tap the words in the correct order.
           </Text>
-
-          {/* Description */}
-          <Text style={styles.description}>
-            Select the missing words in the correct order.
-          </Text>
-
-          {/* Phrase Grid */}
-          <View style={styles.grid}>
-            {phraseOrder.map(num => (
-              <View
-                key={num}
-                style={[
-                  styles.phraseBox,
-                  selectedWords[num] && styles.filledBox,
-                ]}>
-                <Text style={styles.phraseText}>
-                  {num}. {selectedWords[num] ? selectedWords[num] : '*****'}
-                </Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Word Selection */}
-          <View style={styles.wordOptions}>
-            {missingWords.map((word, idx) => (
-              <TouchableOpacity
-                key={idx}
-                style={styles.wordButton}
-                onPress={() => handleSelect(word)}
-                activeOpacity={0.7}>
-                <Text style={styles.wordButtonText}>{word}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <TouchableOpacity
+            onPress={handleClearAll}
+            activeOpacity={0.6}
+            style={{alignSelf: 'flex-end'}}>
+            <Text style={styles.description}>Clear All</Text>
+          </TouchableOpacity>
         </View>
+
+        {/* Selected Words */}
+        <View style={styles.grid}>
+          {phraseWords.map((word, idx) => (
+            <TouchableOpacity
+              onPress={() => handleDeselectWord(word, idx)}
+              key={idx}
+              style={styles.phraseBox}>
+              <Text style={styles.phraseText}>{idx + 1}</Text>
+              <Text style={[styles.phraseText, {flex: 1, textAlign: 'center'}]}>
+                {selectedWords[idx] ? selectedWords[idx] : '*****'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.wordOptions}>
+          {availableWords.map((word, idx) => (
+            <TouchableOpacity
+              key={idx}
+              style={[
+                styles.wordButton,
+                !word && {backgroundColor: 'transparent'}, // keep empty slot
+              ]}
+              disabled={!word} // ✅ disable tap if null
+              onPress={() => word && handleSelectWord(word, idx)}
+              activeOpacity={0.7}>
+              <Text style={styles.wordButtonText}>{word || ''}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {selectedWords.length === phraseWords.length && (
+          <Text
+            style={{
+              marginTop: 20,
+              fontWeight: 'bold',
+              color: themeColors.white,
+            }}>
+            {JSON.stringify(selectedWords) === JSON.stringify(phraseWords)
+              ? '✅ Correct order!'
+              : '❌ Wrong order, try again'}
+          </Text>
+        )}
 
         <CustomButton
           text={'Continue'}
-          onPress={() => navigation.navigate('Dashboard')}
+          onPress={() => {
+            if (selectedWords.length !== phraseWords.length) {
+              Alert.alert('Error', 'Please select all words before continuing');
+            } else if (
+              JSON.stringify(selectedWords) === JSON.stringify(phraseWords)
+            ) {
+              navigation.navigate('Dashboard');
+            } else {
+              Alert.alert('Error', 'Wrong order, try again');
+            }
+          }}
           backgroundColor={themeColors.white}
           btnTxtStyle={{
             fontSize: moderateScale(12),
@@ -122,7 +156,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   mainContainer: {
-    width: '50%',
+    width: '60%',
     alignSelf: 'center',
     borderWidth: 1,
     borderColor: themeColors.grayBoxDark,
@@ -166,10 +200,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: moderateScale(12),
     borderRadius: moderateScale(6),
     marginBottom: moderateScale(10),
-    width: '32%',
+    width: '24%',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: themeColors.gray,
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   filledBox: {
     borderWidth: 2,
@@ -189,7 +225,7 @@ const styles = StyleSheet.create({
   wordButton: {
     backgroundColor: themeColors.themeGrayDark,
     paddingVertical: moderateScale(3),
-    width: '32%',
+    width: '24%',
     alignItems: 'center',
     borderRadius: moderateScale(3),
     marginVertical: moderateScale(5),

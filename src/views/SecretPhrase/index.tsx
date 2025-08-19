@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -10,23 +10,24 @@ import {moderateScale} from 'react-native-size-matters';
 import {themeColors} from '../../styles/Colors';
 import CustomButton from '../../components/CustomButton';
 import CustomLucideIcon from '../../components/CustomLucideIcon';
+// import {generateMnemonic} from 'bip39';
+import {generateMnemonic} from '../../utils/bip39-m';
 // import CustomLucideIcon from '../../components/CustomLucideIcon';
 
 const SecretPhrase = ({navigation}) => {
-  const phrase = [
-    'purity',
-    'notice',
-    'pink',
-    'abuse',
-    'urge',
-    'random',
-    'coffee',
-    'silver',
-    'olympic',
-    'problem',
-    'energy',
-    'segment',
-  ];
+  const [mnemonic, setMnemonic] = useState([]);
+  const [mnemonicWords, setMnemonicWords] = useState([]);
+
+  const handleGenerate = () => {
+    const phrases = generateMnemonic(); // 24 words
+    let finalPhrases = phrases.split(' ');
+    setMnemonic(finalPhrases);
+    setMnemonicWords(phrases);
+  };
+
+  useEffect(() => {
+    handleGenerate();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -67,7 +68,7 @@ const SecretPhrase = ({navigation}) => {
 
           {/* Phrase Grid */}
           <View style={styles.grid}>
-            {phrase.map((word, index) => (
+            {mnemonic?.map((word, index) => (
               <View key={index} style={styles.phraseBox}>
                 <Text style={styles.phraseText}>
                   {index + 1}. {word}
@@ -80,7 +81,11 @@ const SecretPhrase = ({navigation}) => {
         {/* Continue Button */}
         <CustomButton
           text={'Continue'}
-          onPress={() => navigation.navigate('ConfirmSecretPhrase')}
+          onPress={() =>
+            navigation.navigate('ConfirmSecretPhrase', {
+              generatedPhrases: mnemonicWords,
+            })
+          }
           backgroundColor={themeColors.white}
           btnTxtStyle={{
             fontSize: moderateScale(12),
@@ -112,7 +117,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   mainContainer: {
-    width: '50%',
+    width: '70%',
 
     borderWidth: 1,
     borderColor: themeColors.grayBoxDark,
@@ -149,7 +154,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: moderateScale(12),
     borderRadius: moderateScale(6),
     marginBottom: moderateScale(10),
-    width: '32%',
+    width: '23%',
     alignItems: 'center',
   },
   phraseText: {

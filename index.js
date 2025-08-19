@@ -1,6 +1,13 @@
 /**
  * @format
  */
+import 'react-native-get-random-values';
+// import 'react-native-quick-crypto';
+import {Buffer} from 'buffer';
+
+if (typeof global.Buffer === 'undefined') {
+  global.Buffer = Buffer;
+}
 
 import {AppRegistry} from 'react-native';
 import App from './App';
