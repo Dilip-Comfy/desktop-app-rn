@@ -92,7 +92,7 @@ const SecretPhrase = ({navigation}) => {
             color: themeColors.black,
             fontWeight: '600',
           }}
-          height={moderateScale(35)}
+          height={moderateScale(32)}
           width={'80%'}
           style={{
             alignSelf: 'center',
@@ -131,13 +131,13 @@ const styles = StyleSheet.create({
 
   stepText: {
     fontFamily: 'UrbanistSemiBold',
-    fontSize: moderateScale(13),
+    fontSize: moderateScale(12),
     color: themeColors.textDark,
     marginBottom: moderateScale(6),
   },
   title: {
     fontFamily: 'UrbanistBold',
-    fontSize: moderateScale(22),
+    fontSize: moderateScale(20),
     color: themeColors.textDark,
     marginBottom: moderateScale(14),
     lineHeight: moderateScale(28),
@@ -151,25 +151,15 @@ const styles = StyleSheet.create({
   phraseBox: {
     backgroundColor: themeColors.boxBackground2Dark,
     paddingVertical: moderateScale(8),
-    paddingHorizontal: moderateScale(12),
+    paddingHorizontal: moderateScale(5),
     borderRadius: moderateScale(6),
     marginBottom: moderateScale(10),
-    width: '23%',
+    width: '24%',
     alignItems: 'center',
   },
   phraseText: {
     fontFamily: 'UrbanistSemiBold',
-    fontSize: moderateScale(12),
+    fontSize: moderateScale(8),
     color: themeColors.white,
-  },
-  continueButton: {
-    backgroundColor: themeColors.themeColor,
-    borderRadius: moderateScale(8),
-    paddingVertical: moderateScale(12),
-    alignItems: 'center',
-    position: 'absolute',
-    bottom: moderateScale(20),
-    left: moderateScale(16),
-    right: moderateScale(16),
   },
 });

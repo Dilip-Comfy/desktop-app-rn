@@ -17,22 +17,41 @@ const ImportSecretPhrase = ({navigation}) => {
   const [inputValue, setInputValue] = useState('');
 
   const handleTextChange = text => {
-    // If space is pressed, push word to array
-    if (text.endsWith(' ')) {
-      const newWord = text.trim();
-      if (newWord.length > 0) {
-        setPhraseWords(prev => [...prev, newWord]);
-      }
+    if (phraseWords.length >= 24) {
+      setInputValue('');
+      return;
+    }
+
+    // 🔑 Check if user pasted multiple words
+    const words = text.trim().split(/\s+/);
+
+    if (words.length > 1) {
+      // User pasted a phrase
+      const remainingSlots = 24 - phraseWords.length;
+      const validWords = words.slice(0, remainingSlots);
+
+      setPhraseWords(prev => [...prev, ...validWords]);
       setInputValue('');
     } else {
-      setInputValue(text);
+      // Normal typing flow
+      if (text.endsWith(' ')) {
+        const newWord = text.trim();
+        if (newWord.length > 0) {
+          setPhraseWords(prev => [...prev, newWord]);
+        }
+        setInputValue('');
+      } else {
+        setInputValue(text);
+      }
     }
+  };
+  const handleRemoveWord = indexToRemove => {
+    setPhraseWords(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.mainContainer}>
-        {/* Back Button */}
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -40,7 +59,6 @@ const ImportSecretPhrase = ({navigation}) => {
           <CustomLucideIcon name="ArrowLeft" color={themeColors.white} />
         </TouchableOpacity>
 
-        {/* <Text style={styles.stepText}>Step 3 of 3</Text> */}
         <Text style={styles.title}>
           Confirm your Secret{'\n'}Recovery Phrase
         </Text>
@@ -48,7 +66,6 @@ const ImportSecretPhrase = ({navigation}) => {
           Type your secret phrase, separating each word with a space.
         </Text>
 
-        {/* Phrase Display */}
         <ScrollView style={{maxHeight: moderateScale(200)}}>
           <View style={styles.grid}>
             {phraseWords.map((word, index) => (
@@ -56,12 +73,16 @@ const ImportSecretPhrase = ({navigation}) => {
                 <Text style={styles.phraseText}>
                   {index + 1}. {word}
                 </Text>
+                <TouchableOpacity
+                  onPress={() => handleRemoveWord(index)}
+                  style={{marginLeft: moderateScale(5)}}>
+                  <CustomLucideIcon name="X" color={themeColors.white} />
+                </TouchableOpacity>
               </View>
             ))}
           </View>
         </ScrollView>
 
-        {/* Input Field */}
         <TextInput
           style={styles.input}
           placeholder="Type your phrase here..."
@@ -147,6 +168,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: moderateScale(10),
     borderRadius: moderateScale(6),
     margin: moderateScale(5),
+    flexDirection: 'row',
   },
   phraseText: {
     fontFamily: 'UrbanistSemiBold',
@@ -160,6 +182,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: moderateScale(12),
     borderRadius: moderateScale(6),
     marginTop: moderateScale(10),
-    minHeight: moderateScale(110),
+    minHeight: moderateScale(80),
   },
 });

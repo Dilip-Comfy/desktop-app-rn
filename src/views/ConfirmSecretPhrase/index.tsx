@@ -1,9 +1,17 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, Alert} from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ScrollView,
+} from 'react-native';
 import {moderateScale} from 'react-native-size-matters';
 import CustomLucideIcon from '../../components/CustomLucideIcon';
 import {themeColors} from '../../styles/Colors';
 import CustomButton from '../../components/CustomButton';
+import {walletFromMnemonic} from '../../utils/bip39-m';
 
 const ConfirmSecretPhrase = ({route, navigation}) => {
   const {generatedPhrases} = route.params; // ✅ from previous screen
@@ -39,6 +47,38 @@ const ConfirmSecretPhrase = ({route, navigation}) => {
     setAvailableWords(shuffled); // restore original shuffled list
   };
 
+  // const handleProceed = () => {
+  //   if (selectedWords.length !== phraseWords.length) {
+  //     Alert.alert('Error', 'Please select all words before continuing');
+  //   } else if (JSON.stringify(selectedWords) === JSON.stringify(phraseWords)) {
+  //     navigation.navigate('Dashboard');
+  //   } else {
+  //     Alert.alert('Error', 'Wrong order, try again');
+  //   }
+  // };
+
+  const handleProceed = async () => {
+    if (selectedWords.length !== phraseWords.length) {
+      Alert.alert('Error', 'Please select all words before continuing');
+    } else if (JSON.stringify(selectedWords) === JSON.stringify(phraseWords)) {
+      try {
+        const mnemonic = selectedWords.join(' ');
+        // ✅ Create wallet
+        const wallet = walletFromMnemonic(mnemonic);
+
+        // ✅ Save securely
+        // await SecureStore.setItemAsync('userWallet', JSON.stringify(wallet));
+
+        // ✅ Navigate with wallet data
+        navigation.replace('Dashboard', {wallet});
+      } catch (err) {
+        Alert.alert('Error', err.message);
+      }
+    } else {
+      Alert.alert('Error', 'Wrong order, try again');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.mainContainer}>
@@ -69,76 +109,69 @@ const ConfirmSecretPhrase = ({route, navigation}) => {
         </View>
 
         {/* Selected Words */}
-        <View style={styles.grid}>
-          {phraseWords.map((word, idx) => (
-            <TouchableOpacity
-              onPress={() => handleDeselectWord(word, idx)}
-              key={idx}
-              style={styles.phraseBox}>
-              <Text style={styles.phraseText}>{idx + 1}</Text>
-              <Text style={[styles.phraseText, {flex: 1, textAlign: 'center'}]}>
-                {selectedWords[idx] ? selectedWords[idx] : '*****'}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <ScrollView>
+          <View style={styles.grid}>
+            {phraseWords.map((word, idx) => (
+              <TouchableOpacity
+                onPress={() => handleDeselectWord(word, idx)}
+                key={idx}
+                style={styles.phraseBox}>
+                <Text style={styles.phraseText}>{idx + 1}</Text>
+                <Text
+                  style={[styles.phraseText, {flex: 1, textAlign: 'center'}]}>
+                  {selectedWords[idx] ? selectedWords[idx] : '*****'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-        <View style={styles.wordOptions}>
-          {availableWords.map((word, idx) => (
-            <TouchableOpacity
-              key={idx}
-              style={[
-                styles.wordButton,
-                !word && {backgroundColor: 'transparent'}, // keep empty slot
-              ]}
-              disabled={!word} // ✅ disable tap if null
-              onPress={() => word && handleSelectWord(word, idx)}
-              activeOpacity={0.7}>
-              <Text style={styles.wordButtonText}>{word || ''}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+          <View style={styles.wordOptions}>
+            {availableWords.map((word, idx) => (
+              <TouchableOpacity
+                key={idx}
+                style={[
+                  styles.wordButton,
+                  !word && {backgroundColor: 'transparent'}, // keep empty slot
+                ]}
+                disabled={!word}
+                onPress={() => word && handleSelectWord(word, idx)}
+                activeOpacity={0.7}>
+                <Text style={styles.wordButtonText}>{word || ''}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-        {selectedWords.length === phraseWords.length && (
-          <Text
+          {selectedWords.length === phraseWords.length && (
+            <Text
+              style={{
+                marginTop: 20,
+                fontWeight: 'bold',
+                color: themeColors.white,
+              }}>
+              {JSON.stringify(selectedWords) === JSON.stringify(phraseWords)
+                ? '✅ Correct order!'
+                : '❌ Wrong order, try again'}
+            </Text>
+          )}
+
+          <CustomButton
+            text={'Continue'}
+            onPress={handleProceed}
+            backgroundColor={themeColors.white}
+            btnTxtStyle={{
+              fontSize: moderateScale(12),
+              color: themeColors.black,
+              fontWeight: '600',
+            }}
+            height={moderateScale(35)}
+            width={'80%'}
             style={{
-              marginTop: 20,
-              fontWeight: 'bold',
-              color: themeColors.white,
-            }}>
-            {JSON.stringify(selectedWords) === JSON.stringify(phraseWords)
-              ? '✅ Correct order!'
-              : '❌ Wrong order, try again'}
-          </Text>
-        )}
-
-        <CustomButton
-          text={'Continue'}
-          onPress={() => {
-            if (selectedWords.length !== phraseWords.length) {
-              Alert.alert('Error', 'Please select all words before continuing');
-            } else if (
-              JSON.stringify(selectedWords) === JSON.stringify(phraseWords)
-            ) {
-              navigation.navigate('Dashboard');
-            } else {
-              Alert.alert('Error', 'Wrong order, try again');
-            }
-          }}
-          backgroundColor={themeColors.white}
-          btnTxtStyle={{
-            fontSize: moderateScale(12),
-            color: themeColors.black,
-            fontWeight: '600',
-          }}
-          height={moderateScale(35)}
-          width={'80%'}
-          style={{
-            alignSelf: 'center',
-            marginVertical: moderateScale(15),
-            borderRadius: moderateScale(5),
-          }}
-        />
+              alignSelf: 'center',
+              marginVertical: moderateScale(15),
+              borderRadius: moderateScale(5),
+            }}
+          />
+        </ScrollView>
       </View>
     </View>
   );
@@ -150,7 +183,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: themeColors.backgroundDark,
-    paddingHorizontal: moderateScale(16),
+    // paddingHorizontal: moderateScale(16),
     paddingTop: moderateScale(20),
     alignItems: 'center',
     justifyContent: 'center',
@@ -183,7 +216,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontFamily: 'UrbanistRegular',
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(12),
     color: themeColors.white,
     marginBottom: moderateScale(20),
     lineHeight: moderateScale(20),
@@ -192,13 +225,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    // marginBottom: moderateScale(20),
   },
   phraseBox: {
     backgroundColor: themeColors.boxBackground2Dark,
-    paddingVertical: moderateScale(8),
+    paddingVertical: moderateScale(5),
     paddingHorizontal: moderateScale(12),
-    borderRadius: moderateScale(6),
+    borderRadius: moderateScale(4),
     marginBottom: moderateScale(10),
     width: '24%',
     alignItems: 'center',
@@ -213,26 +245,28 @@ const styles = StyleSheet.create({
   },
   phraseText: {
     fontFamily: 'UrbanistSemiBold',
-    fontSize: moderateScale(12),
+    fontSize: moderateScale(8),
     color: themeColors.white,
   },
   wordOptions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    // justifyContent: 'space-between',
     marginBottom: moderateScale(10),
   },
   wordButton: {
     backgroundColor: themeColors.themeGrayDark,
     paddingVertical: moderateScale(3),
-    width: '24%',
+    paddingHorizontal: moderateScale(6),
+    // width: '15%',
     alignItems: 'center',
     borderRadius: moderateScale(3),
-    marginVertical: moderateScale(5),
+    marginHorizontal: moderateScale(5),
+    marginVertical: moderateScale(3),
   },
   wordButtonText: {
     fontFamily: 'UrbanistSemiBold',
-    fontSize: moderateScale(12),
+    fontSize: moderateScale(8),
     color: themeColors.grayLight,
   },
 });

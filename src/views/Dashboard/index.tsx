@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Image,
   ScrollView,
+  Alert,
 } from 'react-native';
 
 import {moderateScale} from 'react-native-size-matters';
@@ -15,6 +16,8 @@ import {themeColors} from '../../styles/Colors';
 import CustomLucideIcon from '../../components/CustomLucideIcon';
 import IMAGES from '../../assets/images';
 import CustomTextInput from '../../components/CustomTextInput';
+import {getAllChainBalances, RPC_LIST} from '../../utils/rpcNetworks';
+import CustomLoader from '../../components/CustomLoader';
 
 // import Icon from 'react-native-vector-icons/Feather';
 
@@ -117,8 +120,34 @@ const cryptoData = [
   },
 ];
 
-export default function DashboardHeader() {
+export default function DashboardHeader({route, navigation}) {
   const [hideShow, setHideShow] = useState(false);
+
+  const {wallet} = route.params;
+
+  console.warn('Wallet', `${wallet.address}`);
+  console.warn('privateKey', `${wallet.privateKey}`);
+  console.warn('mnemonic', `${wallet.mnemonic}`);
+
+  const [balances, setBalances] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        Alert.alert('hiii');
+        const data = await getAllChainBalances(wallet.address, RPC_LIST);
+
+        Alert.alert('abc data', `${JSON.stringify(data)}`);
+        setBalances(data);
+      } catch (e) {
+        console.error('Dashboard fetch error', e);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [wallet.address]);
 
   return (
     <View style={styles.container}>
@@ -314,46 +343,7 @@ export default function DashboardHeader() {
               $0.00 (0.00%)
             </Text>
           </View>
-          {/* 
-          <ScrollView horizontal style={styles.container}>
-            <View>
 
-              <View style={styles.headerRow}>
-                <Text style={styles.headerText}>#</Text>
-                <Text style={styles.headerText}>Token</Text>
-                <Text style={styles.headerText}>Price</Text>
-                <Text style={styles.headerText}>Change (24h)</Text>
-                <Text style={styles.headerText}>Change % (24h)</Text>
-                <Text style={styles.headerText}>Market Cap</Text>
-                <Text style={styles.headerText}>Age</Text>
-              </View>
-
-
-              {cryptoData.map(item => (
-                <View key={item.rank} style={styles.dataRow}>
-                  <Text style={styles.cellText}>{item.rank}</Text>
-                  <View style={styles.tokenCell}>
-                 
-                    <View style={{marginLeft: moderateScale(8)}}>
-                      <Text style={styles.symbolText}>{item.symbol}</Text>
-                      <Text style={styles.nameText}>{item.name}</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.cellText}>{item.price}</Text>
-                  <Text
-                    style={[styles.cellText, {color: themeColors.themeGreen}]}>
-                    {item.change24h}
-                  </Text>
-                  <Text
-                    style={[styles.cellText, {color: themeColors.themeGreen}]}>
-                    {item.changePct24h}
-                  </Text>
-                  <Text style={styles.cellText}>{item.marketCap}</Text>
-                  <Text style={styles.cellText}>{item.age}</Text>
-                </View>
-              ))}
-            </View>
-          </ScrollView> */}
           <ScrollView style={styles.container} nestedScrollEnabled>
             <ScrollView horizontal showsHorizontalScrollIndicator>
               <View>
@@ -419,6 +409,8 @@ export default function DashboardHeader() {
           </ScrollView>
         </View>
       </View>
+
+      <CustomLoader visible={loading} />
     </View>
   );
 }
