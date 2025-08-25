@@ -23,6 +23,7 @@ export const themeColors = {
   themeMustardLight: '#E9B34F',
   themeBarMustard: '#FBB03B',
   themeBarBlue: '#2E90FA',
+  themeBlue: '#0569d4',
   themeBlueLight: '#E4E4FF',
   themeBlueMaxLight: '#E3E7FF',
   themePurple: '#B300FA',

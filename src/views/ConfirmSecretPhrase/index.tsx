@@ -12,6 +12,7 @@ import CustomLucideIcon from '../../components/CustomLucideIcon';
 import {themeColors} from '../../styles/Colors';
 import CustomButton from '../../components/CustomButton';
 import {walletFromMnemonic} from '../../utils/bip39-m';
+import CustomLoader from '../../components/CustomLoader';
 
 const ConfirmSecretPhrase = ({route, navigation}) => {
   const {generatedPhrases} = route.params; // ✅ from previous screen
@@ -21,12 +22,13 @@ const ConfirmSecretPhrase = ({route, navigation}) => {
 
   const [availableWords, setAvailableWords] = useState(shuffled);
   const [selectedWords, setSelectedWords] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const handleSelectWord = (word, index) => {
     setSelectedWords([...selectedWords, word]);
-    const updated = [...availableWords];
-    updated[index] = null; // ✅ keep space but hide word
-    setAvailableWords(updated);
+    const updatedAvailableWords = availableWords.filter((_, i) => i !== index);
+
+    setAvailableWords(updatedAvailableWords);
   };
 
   const handleDeselectWord = (word, index) => {
@@ -47,20 +49,12 @@ const ConfirmSecretPhrase = ({route, navigation}) => {
     setAvailableWords(shuffled); // restore original shuffled list
   };
 
-  // const handleProceed = () => {
-  //   if (selectedWords.length !== phraseWords.length) {
-  //     Alert.alert('Error', 'Please select all words before continuing');
-  //   } else if (JSON.stringify(selectedWords) === JSON.stringify(phraseWords)) {
-  //     navigation.navigate('Dashboard');
-  //   } else {
-  //     Alert.alert('Error', 'Wrong order, try again');
-  //   }
-  // };
-
   const handleProceed = async () => {
+    setLoading(true);
     if (selectedWords.length !== phraseWords.length) {
       Alert.alert('Error', 'Please select all words before continuing');
     } else if (JSON.stringify(selectedWords) === JSON.stringify(phraseWords)) {
+      // setLoading(true);
       try {
         const mnemonic = selectedWords.join(' ');
         // ✅ Create wallet
@@ -70,11 +64,15 @@ const ConfirmSecretPhrase = ({route, navigation}) => {
         // await SecureStore.setItemAsync('userWallet', JSON.stringify(wallet));
 
         // ✅ Navigate with wallet data
-        navigation.replace('Dashboard', {wallet});
+
+        setLoading(false);
+        navigation.replace('SetPasswordScreen', {wallet});
       } catch (err) {
         Alert.alert('Error', err.message);
+        setLoading(false);
       }
     } else {
+      setLoading(false);
       Alert.alert('Error', 'Wrong order, try again');
     }
   };
@@ -124,27 +122,27 @@ const ConfirmSecretPhrase = ({route, navigation}) => {
               </TouchableOpacity>
             ))}
           </View>
-
-          <View style={styles.wordOptions}>
-            {availableWords.map((word, idx) => (
-              <TouchableOpacity
-                key={idx}
-                style={[
-                  styles.wordButton,
-                  !word && {backgroundColor: 'transparent'}, // keep empty slot
-                ]}
-                disabled={!word}
-                onPress={() => word && handleSelectWord(word, idx)}
-                activeOpacity={0.7}>
-                <Text style={styles.wordButtonText}>{word || ''}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {availableWords.length > 0 && (
+            <View style={styles.wordOptions}>
+              {availableWords?.map((word, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={[
+                    styles.wordButton,
+                    !word && {backgroundColor: 'transparent'}, // keep empty slot
+                  ]}
+                  disabled={!word}
+                  onPress={() => word && handleSelectWord(word, idx)}
+                  activeOpacity={0.7}>
+                  <Text style={styles.wordButtonText}>{word || ''}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           {selectedWords.length === phraseWords.length && (
             <Text
               style={{
-                marginTop: 20,
                 fontWeight: 'bold',
                 color: themeColors.white,
               }}>
@@ -173,6 +171,8 @@ const ConfirmSecretPhrase = ({route, navigation}) => {
           />
         </ScrollView>
       </View>
+
+      <CustomLoader visible={loading} />
     </View>
   );
 };
@@ -251,8 +251,6 @@ const styles = StyleSheet.create({
   wordOptions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    // justifyContent: 'space-between',
-    marginBottom: moderateScale(10),
   },
   wordButton: {
     backgroundColor: themeColors.themeGrayDark,

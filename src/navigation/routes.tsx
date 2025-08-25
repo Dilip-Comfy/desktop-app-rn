@@ -6,6 +6,8 @@ import SecretPhrase from '../views/SecretPhrase';
 import ConfirmSecretPhrase from '../views/ConfirmSecretPhrase';
 import Dashboard from '../views/Dashboard';
 import ImportSecretPhrase from '../views/ImportSecretPhrase';
+import SetPasswordScreen from '../views/SetPasswordScreen';
+import VerifyPassword from '../views/VerifyPassword';
 
 // Authorization
 // import SplashScreen from '@views/SplashScreen';
@@ -38,6 +40,16 @@ const Routes: React.FC = () => {
           <Stack.Screen
             name="ImportSecretPhrase"
             component={ImportSecretPhrase}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="SetPasswordScreen"
+            component={SetPasswordScreen}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="VerifyPassword"
+            component={VerifyPassword}
             options={{headerShown: false}}
           />
           <Stack.Screen

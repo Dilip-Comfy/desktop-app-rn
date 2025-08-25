@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
-import {View} from 'react-native';
+import {LogBox} from 'react-native';
 import Routes from './src/navigation/routes';
 
 // import { Provider as PaperProvider } from 'react-native-paper';
@@ -9,6 +9,9 @@ import Routes from './src/navigation/routes';
 
 // import { NetworkProvider, useNetwork } from '@utils/NetworkProvider';
 // import NoInternetModal from '@utils/NoInternetModal';
+
+// This will ignore all log notifications on the device screen
+LogBox.ignoreAllLogs();
 
 const App: React.FC = () => {
   // const { isConnected } = useNetwork();

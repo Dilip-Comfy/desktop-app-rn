@@ -9,6 +9,7 @@ import {
   Image,
   ScrollView,
   Alert,
+  Modal,
 } from 'react-native';
 
 import {moderateScale} from 'react-native-size-matters';
@@ -16,138 +17,72 @@ import {themeColors} from '../../styles/Colors';
 import CustomLucideIcon from '../../components/CustomLucideIcon';
 import IMAGES from '../../assets/images';
 import CustomTextInput from '../../components/CustomTextInput';
-import {getAllChainBalances, RPC_LIST} from '../../utils/rpcNetworks';
+import {
+  getAllChainBalances,
+  getBalance,
+  RPC_LIST,
+} from '../../utils/rpcNetworks';
 import CustomLoader from '../../components/CustomLoader';
-
+import Clipboard from '@react-native-clipboard/clipboard';
+import Toast from 'react-native-toast-message';
+import SendTokenModal from '../../components/SendTokenModal';
+import ReceiveTokenModal from '../../components/ReceiveTokenModal';
 // import Icon from 'react-native-vector-icons/Feather';
-
-const cryptoData = [
-  {
-    rank: 1,
-    icon: '',
-    symbol: 'ETH',
-    name: 'Ethereum',
-    price: '$4,709.33',
-    change24h: '+$373.14',
-    changePct24h: '+7.92%',
-    marketCap: '$568.1B',
-    age: '8y',
-    fdv: '$578/2B',
-  },
-  {
-    rank: 2,
-    icon: '',
-    symbol: 'WBTC',
-    name: 'Wrapped Bitcoin',
-    price: '$120,498.00',
-    change24h: '+$1,429.13',
-    changePct24h: '+1.19%',
-    marketCap: '$15.3B',
-    age: '8y',
-    fdv: '$578/2B',
-  },
-  {
-    rank: 3,
-    icon: '',
-    symbol: 'MGC',
-    name: 'Meta Games Coin',
-    price: '$2.26',
-    change24h: '+$0.03',
-    changePct24h: '+1.49%',
-    marketCap: '$226.3B',
-    age: '1y',
-    fdv: '$578/2B',
-  },
-  {
-    rank: 4,
-    icon: '',
-    symbol: 'LINK',
-    name: 'ChainLink Token',
-    price: '$23.90',
-    change24h: '+$1.62',
-    changePct24h: '+6.77%',
-    marketCap: '$16.2B',
-    age: '1y',
-    fdv: '$578/2B',
-  },
-  {
-    rank: 5,
-    icon: '',
-    symbol: 'GRD',
-    name: 'GRADE',
-    price: '$280.86',
-    change24h: '+$5.67',
-    changePct24h: '+2.02%',
-    marketCap: '$14.6B',
-    age: '7M',
-    fdv: '$578/2B',
-  },
-  {
-    rank: 6,
-    icon: '',
-    symbol: 'MGC',
-    name: 'Meta Games Coin',
-    price: '$2.26',
-    change24h: '+$0.03',
-    changePct24h: '+1.49%',
-    marketCap: '$226.3B',
-    age: '1y',
-    fdv: '$578/2B',
-  },
-  {
-    rank: 7,
-    icon: '',
-    symbol: 'LINK',
-    name: 'ChainLink Token',
-    price: '$23.90',
-    change24h: '+$1.62',
-    changePct24h: '+6.77%',
-    marketCap: '$16.2B',
-    age: '1y',
-    fdv: '$578/2B',
-  },
-  {
-    rank: 8,
-    icon: '',
-    symbol: 'GRD',
-    name: 'GRADE',
-    price: '$280.86',
-    change24h: '+$5.67',
-    changePct24h: '+2.02%',
-    marketCap: '$14.6B',
-    age: '7M',
-    fdv: '$578/2B',
-  },
-];
 
 export default function DashboardHeader({route, navigation}) {
   const [hideShow, setHideShow] = useState(false);
+  const [showSendPopup, setShowSendPopup] = useState(false);
+  const [showReceivePopup, setShowReceivePopup] = useState(false);
 
   const {wallet} = route.params;
 
-  console.warn('Wallet', `${wallet.address}`);
-  console.warn('privateKey', `${wallet.privateKey}`);
-  console.warn('mnemonic', `${wallet.mnemonic}`);
+  // console.warn('Wallet', `${wallet.address}`);
+  // console.warn('privateKey', `${wallet.privateKey}`);
+  // console.warn('mnemonic', `${wallet.mnemonic}`);
 
   const [balances, setBalances] = useState([]);
+  const [totalBalance, setTotalBalance] = useState('0.0');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        Alert.alert('hiii');
-        const data = await getAllChainBalances(wallet.address, RPC_LIST);
+  const fetchBalances = async () => {
+    try {
+      setLoading(true);
 
-        Alert.alert('abc data', `${JSON.stringify(data)}`);
-        setBalances(data);
-      } catch (e) {
-        console.error('Dashboard fetch error', e);
-      } finally {
-        setLoading(false);
-      }
-    })();
+      const {results, totalBalance: totalBal} = await getAllChainBalances(
+        wallet.address,
+        RPC_LIST,
+      );
+
+      console.log('resultss', results);
+
+      let res = await getBalance(wallet.address);
+
+      setBalances(results);
+      setTotalBalance(res);
+    } catch (e) {
+      console.error('Dashboard fetch error', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBalances(); // auto-run when wallet changes
   }, [wallet.address]);
+
+  const copyToClipboard = () => {
+    // 1. Copy the text
+    Clipboard.setString(wallet.address);
+
+    // 2. Show the cross-platform Toast notification
+    Toast.show({
+      type: 'success', // or 'info', 'error', 'warning'
+      text1: 'Copied!',
+      text2: 'The text has been copied to your clipboard.',
+      position: 'bottom', // Use 'top' or 'bottom'
+      visibilityTime: 2000, // 2 seconds
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -201,33 +136,6 @@ export default function DashboardHeader({route, navigation}) {
             }}
           />
         </View>
-        {/*
-        <View style={styles.actionsRow}>
-          <TouchableOpacity style={[styles.button, styles.buyButton]}>
-            <Text style={[styles.buttonText, {color: themeColors.white}]}>
-              Buy ▼
-            </Text>
-          </TouchableOpacity>
-
-          {[
-            {label: 'Swap', icon: 'RefreshCcw'},
-            {label: 'Bridge', icon: 'Waypoints'},
-            {label: 'Send', icon: 'MoveUpRight'},
-            {label: 'Sell', icon: 'Minus'},
-            {label: 'Stake', icon: 'Sprout'},
-            {label: 'Network', icon: 'Network'},
-            {label: 'Accounts', icon: 'UsersRound'},
-          ].map((item, index) => (
-            <TouchableOpacity key={index} style={styles.button}>
-              <CustomLucideIcon
-                name={item.icon}
-                color={themeColors.black}
-                style={{marginRight: moderateScale(5)}}
-              />
-              <Text style={styles.buttonText}>{item.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View> */}
 
         <View style={styles.actionsRow}>
           <TouchableOpacity style={[styles.button, styles.buyButton]}>
@@ -236,25 +144,11 @@ export default function DashboardHeader({route, navigation}) {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button}>
-            <CustomLucideIcon
-              name="RefreshCcw"
-              color={themeColors.black}
-              style={{marginRight: moderateScale(5)}}
-            />
-            <Text style={styles.buttonText}>Swap</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.button}>
-            <CustomLucideIcon
-              name="Waypoints"
-              color={themeColors.black}
-              style={{marginRight: moderateScale(5)}}
-            />
-            <Text style={styles.buttonText}>Bridge</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              setShowSendPopup(true);
+            }}>
             <CustomLucideIcon
               name="MoveUpRight"
               color={themeColors.black}
@@ -263,22 +157,17 @@ export default function DashboardHeader({route, navigation}) {
             <Text style={styles.buttonText}>Send</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              setShowReceivePopup(true);
+            }}>
             <CustomLucideIcon
-              name="Minus"
+              name="MoveDownLeft"
               color={themeColors.black}
               style={{marginRight: moderateScale(5)}}
             />
-            <Text style={styles.buttonText}>Sell</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.button}>
-            <CustomLucideIcon
-              name="Sprout"
-              color={themeColors.black}
-              style={{marginRight: moderateScale(5)}}
-            />
-            <Text style={styles.buttonText}>Stake</Text>
+            <Text style={styles.buttonText}>Receive</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.button}>
@@ -287,7 +176,7 @@ export default function DashboardHeader({route, navigation}) {
               color={themeColors.black}
               style={{marginRight: moderateScale(5)}}
             />
-            <Text style={styles.buttonText}>Network</Text>
+            <Text style={styles.buttonText}> Switch Network</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.button}>
@@ -296,7 +185,7 @@ export default function DashboardHeader({route, navigation}) {
               color={themeColors.black}
               style={{marginRight: moderateScale(5)}}
             />
-            <Text style={styles.buttonText}>Accounts</Text>
+            <Text style={styles.buttonText}>Accounts </Text>
           </TouchableOpacity>
         </View>
 
@@ -309,14 +198,31 @@ export default function DashboardHeader({route, navigation}) {
             borderColor: themeColors.gray,
           }}>
           <View>
-            <Text style={styles.titleSecond}>Decentralized Accounts</Text>
+            <Text style={styles.titleSecond}>Decentralized Account</Text>
+
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={[styles.addressTextStyle, {marginBottom: 0}]}>
+                {wallet?.address}
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  copyToClipboard();
+                }}>
+                <CustomLucideIcon
+                  name="Copy"
+                  color={themeColors.white}
+                  style={{marginLeft: moderateScale(10)}}
+                />
+              </TouchableOpacity>
+            </View>
+
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <Text
                 style={[
                   styles.title,
                   {marginBottom: 0, fontSize: moderateScale(24)},
                 ]}>
-                {hideShow ? '***' : '$0.00'}
+                {hideShow ? '$***' : `$${totalBalance}`}
               </Text>
 
               <TouchableOpacity
@@ -349,37 +255,52 @@ export default function DashboardHeader({route, navigation}) {
               <View>
                 {/* Header */}
                 <View style={styles.headerRow}>
-                  <Text style={styles.headerText}>#</Text>
+                  <Text style={[styles.headerText, {width: moderateScale(50)}]}>
+                    #
+                  </Text>
                   <Text style={styles.headerText}>Token</Text>
-                  <Text style={styles.headerText}>Price</Text>
-                  <Text style={styles.headerText}>Change (24h)</Text>
-                  <Text style={styles.headerText}>Change % (24h)</Text>
-                  <Text style={styles.headerText}>Market Cap</Text>
-                  <Text style={styles.headerText}>FDV</Text>
                   <Text
                     style={[
                       styles.headerText,
-                      {marginLeft: moderateScale(-15)},
+                      {
+                        textAlign: 'left',
+                        borderWidth: 1,
+                        borderColor: themeColors.white,
+                        width: moderateScale(200),
+                      },
                     ]}>
-                    Age
+                    Name
                   </Text>
+                  <Text style={styles.headerText}>Balance</Text>
                 </View>
 
                 {/* Data Rows */}
-                {cryptoData.map(item => (
-                  <View key={item.rank} style={styles.dataRow}>
-                    <Text style={styles.cellText}>{item.rank}</Text>
+                {balances?.map(item => (
+                  <View key={item.chainId} style={styles.dataRow}>
+                    <Text style={[styles.cellText, {width: moderateScale(50)}]}>
+                      {item.chainId}
+                    </Text>
 
                     <View style={styles.tokenCell}>
                       <View style={{marginLeft: moderateScale(8)}}>
                         <Text style={styles.symbolText}>{item.symbol}</Text>
-                        <Text style={styles.nameText}>{item.name}</Text>
+                        {/* <Text style={styles.namewhite}>{item.name} </Text> */}
                       </View>
                     </View>
 
-                    <Text style={styles.cellText}>{item.price}</Text>
-
                     <Text
+                      style={[
+                        styles.cellText,
+                        {width: moderateScale(200), textAlign: 'left'},
+                      ]}>
+                      {item.name}
+                    </Text>
+                    <Text
+                      style={[styles.cellText, {width: moderateScale(140)}]}>
+                      {item.balance}
+                    </Text>
+
+                    {/* <Text
                       style={[
                         styles.cellText,
                         {
@@ -387,9 +308,9 @@ export default function DashboardHeader({route, navigation}) {
                           width: moderateScale(100),
                         },
                       ]}>
-                      {item.change24h}
-                    </Text>
-                    <Text
+                      {item.balance}
+                    </Text> */}
+                    {/* <Text
                       style={[
                         styles.cellText,
                         {
@@ -401,7 +322,7 @@ export default function DashboardHeader({route, navigation}) {
                     </Text>
                     <Text style={styles.cellText}>{item.marketCap}</Text>
                     <Text style={styles.cellText}>{item.fdv}</Text>
-                    <Text style={styles.cellText}>{item.age}</Text>
+                    <Text style={styles.cellText}>{item.age}</Text> */}
                   </View>
                 ))}
               </View>
@@ -409,6 +330,24 @@ export default function DashboardHeader({route, navigation}) {
           </ScrollView>
         </View>
       </View>
+
+      <SendTokenModal
+        popupOpen={showSendPopup}
+        closePopup={() => setShowSendPopup(false)}
+        onSuccessFunction={fetchBalances}
+        wallet={wallet}
+        rpcUrl={'https://bsc-testnet.bnbchain.org'}
+        tokenAddress={undefined} // or pass token address for ERC20
+      />
+
+      <ReceiveTokenModal
+        popupOpen={showReceivePopup}
+        closePopup={() => setShowReceivePopup(false)}
+        // onSuccessFunction={fetchBalances}
+        wallet={wallet}
+        // rpcUrl={'https://bsc-testnet.bnbchain.org'}
+        // tokenAddress={undefined} // or pass token address for ERC20
+      />
 
       <CustomLoader visible={loading} />
     </View>
@@ -460,7 +399,13 @@ const styles = StyleSheet.create({
     color: themeColors.white,
     fontSize: moderateScale(16),
     fontWeight: 'bold',
+    // marginBottom: moderateScale(10),
+  },
+  addressTextStyle: {
+    // color: themeColors.white,
+    fontSize: moderateScale(8),
     marginBottom: moderateScale(10),
+    color: themeColors.grayMidLight,
   },
 
   // sdfsdf
@@ -474,7 +419,8 @@ const styles = StyleSheet.create({
     fontFamily: 'UrbanistSemiBold',
     color: themeColors.white,
     fontSize: moderateScale(12),
-    width: moderateScale(120),
+    width: moderateScale(150),
+    textAlign: 'center',
   },
   dataRow: {
     flexDirection: 'row',
@@ -484,22 +430,28 @@ const styles = StyleSheet.create({
   },
   tokenCell: {
     flexDirection: 'row',
-    width: moderateScale(120),
+    width: moderateScale(150),
+    textAlign: 'center',
   },
   symbolText: {
     fontFamily: 'UrbanistSemiBold',
     color: themeColors.white,
     fontSize: moderateScale(12),
+    width: moderateScale(130),
+    textAlign: 'center',
   },
   namewhite: {
     fontFamily: 'UrbanistRegular',
     color: themeColors.grayLight,
-    fontSize: moderateScale(10),
+    fontSize: moderateScale(8),
   },
   cellText: {
     fontFamily: 'UrbanistRegular',
     color: themeColors.white,
     fontSize: moderateScale(12),
-    width: moderateScale(120),
+    width: moderateScale(150),
+    textAlign: 'center',
+    borderWidth: 1,
+    borderColor: themeColors.white,
   },
 });

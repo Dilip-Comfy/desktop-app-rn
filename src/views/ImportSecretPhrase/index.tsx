@@ -6,15 +6,19 @@ import {
   StyleSheet,
   TextInput,
   ScrollView,
+  Alert,
 } from 'react-native';
 import {moderateScale} from 'react-native-size-matters';
 import CustomLucideIcon from '../../components/CustomLucideIcon';
 import {themeColors} from '../../styles/Colors';
 import CustomButton from '../../components/CustomButton';
+import {validateMnemonic, walletFromMnemonic} from '../../utils/bip39-m';
+import CustomLoader from '../../components/CustomLoader';
 
 const ImportSecretPhrase = ({navigation}) => {
   const [phraseWords, setPhraseWords] = useState([]);
   const [inputValue, setInputValue] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleTextChange = text => {
     if (phraseWords.length >= 24) {
@@ -47,6 +51,46 @@ const ImportSecretPhrase = ({navigation}) => {
   };
   const handleRemoveWord = indexToRemove => {
     setPhraseWords(prev => prev.filter((_, index) => index !== indexToRemove));
+  };
+
+  const handleProceed = async () => {
+    const normalized = phraseWords
+      .join(' ')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, ' '); // collapse any double spaces
+
+    if (!normalized) {
+      Alert.alert('Error', 'Please enter your recovery phrase');
+      return;
+    }
+
+    // Optional: enforce typical BIP39 word counts (12/15/18/21/24)
+    const wc = normalized.split(' ').length;
+    if (![12, 15, 18, 21, 24].includes(wc)) {
+      Alert.alert(
+        'Error',
+        'Recovery phrase must be 12, 15, 18, 21, or 24 words',
+      );
+      return;
+    }
+
+    if (!validateMnemonic(normalized)) {
+      Alert.alert('Error', 'Invalid recovery phrase');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // index = 0 by default; change if you need a different account
+      const wallet = walletFromMnemonic(normalized, 0);
+      setLoading(false);
+      navigation.replace('SetPasswordScreen', {wallet});
+      // navigation.replace('Dashboard', {wallet});
+    } catch (err) {
+      setLoading(false);
+      Alert.alert('Error', err?.message || 'Failed to import wallet');
+    }
   };
 
   return (
@@ -94,7 +138,7 @@ const ImportSecretPhrase = ({navigation}) => {
 
         <CustomButton
           text={'Continue'}
-          onPress={() => navigation.navigate('Dashboard')}
+          onPress={() => handleProceed()}
           backgroundColor={themeColors.white}
           btnTxtStyle={{
             fontSize: moderateScale(12),
@@ -110,6 +154,7 @@ const ImportSecretPhrase = ({navigation}) => {
           }}
         />
       </View>
+      <CustomLoader visible={loading} />
     </View>
   );
 };
@@ -164,15 +209,15 @@ const styles = StyleSheet.create({
   phraseBox: {
     borderWidth: 1,
     borderColor: themeColors.themeLight,
-    paddingVertical: moderateScale(5),
-    paddingHorizontal: moderateScale(10),
-    borderRadius: moderateScale(6),
+    paddingVertical: moderateScale(2),
+    paddingHorizontal: moderateScale(5),
+    borderRadius: moderateScale(4),
     margin: moderateScale(5),
     flexDirection: 'row',
   },
   phraseText: {
     fontFamily: 'UrbanistSemiBold',
-    fontSize: moderateScale(12),
+    fontSize: moderateScale(8),
     color: themeColors.white,
   },
   input: {
