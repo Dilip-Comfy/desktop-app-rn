@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     paddingVertical: moderateScale(2),
     paddingHorizontal: moderateScale(5),
     borderRadius: moderateScale(4),
-    margin: moderateScale(5),
+    margin: moderateScale(3),
     flexDirection: 'row',
   },
   phraseText: {

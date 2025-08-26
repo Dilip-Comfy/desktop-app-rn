@@ -41,6 +41,10 @@ const SetPasswordScreen = ({route, navigation}) => {
       Alert.alert('Error', 'Please accept the terms to continue');
       return;
     }
+
+    // setItem('walletData', wallet);
+    // setItem('userPassword', password);
+
     navigation.replace('Dashboard', {wallet});
   };
 
