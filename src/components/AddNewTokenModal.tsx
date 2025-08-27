@@ -13,6 +13,7 @@ import {moderateScale, scale} from 'react-native-size-matters';
 import {ethers} from 'ethers';
 import {themeColors} from '../styles/Colors';
 import CustomDropdown from './CustomDropdown';
+import {getTokenBalance} from '../utils/bip39-m';
 
 interface AddNewTokenModalProps {
   popupOpen: boolean;
@@ -51,7 +52,10 @@ const AddNewTokenModal: React.FC<AddNewTokenModalProps> = ({
   const [decimals, setDecimals] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [fruit, setFruit] = useState<string | null>(null);
+  const [selectedNetworkName, setSelectedNetworkName] = useState<string | null>(
+    null,
+  );
+  const [selectedNetwork, setSelectedNetwork] = useState(null);
   const [networks, setNetworks] = useState([]);
 
   useEffect(() => {
@@ -71,6 +75,11 @@ const AddNewTokenModal: React.FC<AddNewTokenModalProps> = ({
         Alert.alert('Invalid', 'Please enter a valid contract address');
         return;
       }
+      if (!selectedNetwork) {
+        Alert.alert('Select Network', 'Please choose a network first');
+        return;
+      }
+
       setLoading(true);
       const provider = new ethers.JsonRpcProvider(rpcUrl);
       const token = new ethers.Contract(address, ERC20_ABI_FETCH, provider);
@@ -78,11 +87,6 @@ const AddNewTokenModal: React.FC<AddNewTokenModalProps> = ({
       const tokenName = await token.name();
       const tokenSymbol = await token.symbol();
       const tokenDecimals = await token.decimals();
-
-      Alert.alert(
-        'Avcjsds',
-        `${tokenName} \t ${tokenSymbol} \t ${tokenDecimals}`,
-      );
 
       setName(tokenName);
       setSymbol(tokenSymbol);
@@ -117,12 +121,13 @@ const AddNewTokenModal: React.FC<AddNewTokenModalProps> = ({
         `You have ${formattedBalance} ${tokenSymbol}`,
       );
 
-      onSuccessFunction();
+      // onSuccessFunction();
       let rpcObj = {
         tokenName: name,
         tokenSymbol,
         tokenDecimals,
         formattedBalance,
+        network: selectedNetwork,
       };
       onAddDone(rpcObj);
       setContractAddress('');
@@ -138,7 +143,7 @@ const AddNewTokenModal: React.FC<AddNewTokenModalProps> = ({
   };
 
   if (!popupOpen) return null;
-  Alert.alert(`${networks[0]?.label}`);
+  console.log(`${networks[0]?.label}`);
   return (
     <View
       style={{
@@ -169,13 +174,15 @@ const AddNewTokenModal: React.FC<AddNewTokenModalProps> = ({
           Import Token
         </Text>
 
-        {/* Contract Address Input */}
-
         <CustomDropdown
           items={networks}
           placeholder="Select Network"
-          value={fruit}
-          setValue={setFruit}
+          value={selectedNetworkName}
+          setValue={setSelectedNetworkName}
+          setSelectedItem={value => {
+            console.warn(`${value.dataObj.chainId}`);
+            setSelectedNetwork(value);
+          }}
           containerStyle={{width: '100%'}}
           dropdownStyle={{backgroundColor: themeColors.white}}
           textStyle={{}}

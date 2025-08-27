@@ -5,11 +5,13 @@ import {
   View,
   StyleSheet,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 
 const CustomLoader = ({visible = false}) => {
   const {width, height} = useWindowDimensions();
   const height2 = height + 100;
+
   return (
     visible && (
       <View style={[style.container, {height2, width}]}>
@@ -19,7 +21,6 @@ const CustomLoader = ({visible = false}) => {
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-          {/* <LoaderKit style={{ width: 50, height: 50, alignSelf: 'center' }} name={'BallSpinFadeLoader'} color={COLORS.themeColor} /> */}
           <ActivityIndicator
             style={{width: 50, height: 50}}
             size={'large'}

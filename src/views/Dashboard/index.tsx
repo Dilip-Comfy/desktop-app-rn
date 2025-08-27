@@ -31,25 +31,27 @@ import CustomDropdown from '../../components/CustomDropdown';
 import {Dropdown} from 'react-native-element-dropdown';
 import RpcNetworkModal from '../../components/RpcNetworkModal';
 import AddNewTokenModal from '../../components/AddNewTokenModal';
+import SendErcTokenModal from '../../components/SendErcTokenModal';
+import {getTokenBalance} from '../../utils/bip39-m';
 
 // import Icon from 'react-native-vector-icons/Feather';
-
+// console.warn('Wallet', `${wallet.address}`);
+// console.warn('privateKey', `${wallet.privateKey}`);
+// console.warn('mnemonic', `${wallet.mnemonic}`);
 export default function DashboardHeader({route, navigation}) {
   const [hideShow, setHideShow] = useState(false);
   const [showSendPopup, setShowSendPopup] = useState(false);
+  const [showSendTokenPopup, setShowSendTokenPopup] = useState(false);
   const [showReceivePopup, setShowReceivePopup] = useState(false);
   const [isRpcModalOpen, setIsRpcModalOpen] = useState(false);
   const [addTokenModalOpen, setAddTokenModalOpen] = useState(false);
   const [selectedRpc, setSelectedRpc] = useState({});
+  const [selectedErc, setSelectedErc] = useState({});
   const {wallet} = route.params;
-  // console.warn('Wallet', `${wallet.address}`);
-  // console.warn('privateKey', `${wallet.privateKey}`);
-  // console.warn('mnemonic', `${wallet.mnemonic}`);
+
   const [rpcListData, setRpcListData] = useState([]);
   const [newRpcListData, setNewRpcListData] = useState([]);
-  const [totalBalance, setTotalBalance] = useState('0.0');
   const [loading, setLoading] = useState(true);
-  const [fruit, setFruit] = useState<string | null>(null);
 
   const fetchBalances = async () => {
     try {
@@ -60,13 +62,8 @@ export default function DashboardHeader({route, navigation}) {
         RPC_LIST,
       );
 
-      console.log('resultss', results);
-
-      let res = await getBalance(wallet.address);
-
       setRpcListData(results);
       setSelectedRpc(results[0]);
-      // setTotalBalance(res);
     } catch (e) {
       console.error('Dashboard fetch error', e);
     } finally {
@@ -92,11 +89,49 @@ export default function DashboardHeader({route, navigation}) {
     });
   };
 
-  function safeStringify(obj) {
-    return JSON.stringify(obj, (key, value) =>
-      typeof value === 'bigint' ? value.toString() : value,
-    );
-  }
+  const updateTokenBalance = async (chainId, tokenObj) => {
+    try {
+      // get fresh balance for only this token
+      const updatedToken = await getTokenBalance(
+        wallet.address,
+        tokenObj,
+        chainId,
+      );
+
+      setRpcListData(prev =>
+        prev.map(network => {
+          if (network.chainId === chainId) {
+            return {
+              ...network,
+              ercTokenList: network.ercTokenList.map(token =>
+                token.tokenAddress === updatedToken.tokenAddress
+                  ? updatedToken // replace balance
+                  : token,
+              ),
+            };
+          }
+          return network;
+        }),
+      );
+
+      // update selectedRpc too if we are on that network
+      setSelectedRpc(prev =>
+        prev && prev.chainId === chainId
+          ? {
+              ...prev,
+              ercTokenList: prev.ercTokenList.map(token =>
+                token.tokenAddress === updatedToken.tokenAddress
+                  ? updatedToken
+                  : token,
+              ),
+            }
+          : prev,
+      );
+    } catch (e) {
+      console.error('Update balance error', e);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Image
@@ -293,8 +328,8 @@ export default function DashboardHeader({route, navigation}) {
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.container} nestedScrollEnabled>
-            <ScrollView horizontal showsHorizontalScrollIndicator>
+          <View style={styles.container}>
+            <ScrollView>
               <View>
                 {/* Header */}
                 <View style={styles.headerRow}>
@@ -310,7 +345,7 @@ export default function DashboardHeader({route, navigation}) {
                       styles.headerText,
                       {
                         textAlign: 'left',
-                        width: moderateScale(200),
+                        width: moderateScale(150),
                       },
                     ]}>
                     Name
@@ -320,7 +355,7 @@ export default function DashboardHeader({route, navigation}) {
                       styles.headerText,
                       {
                         textAlign: 'left',
-                        width: moderateScale(150),
+                        width: moderateScale(80),
                       },
                     ]}>
                     Balance
@@ -340,7 +375,7 @@ export default function DashboardHeader({route, navigation}) {
                     style={[
                       styles.cellText,
                       {
-                        width: moderateScale(200),
+                        width: moderateScale(150),
                         textAlign: 'left',
                       },
                     ]}>
@@ -349,13 +384,17 @@ export default function DashboardHeader({route, navigation}) {
                   <Text
                     style={[
                       styles.cellText,
-                      {width: moderateScale(150), textAlign: 'left'},
+                      {
+                        width: moderateScale(100),
+                        textAlign: 'left',
+                        backgroundColor: themeColors.themeBarBlue,
+                      },
                     ]}>
                     {selectedRpc?.balance}
                   </Text>
                 </View>
 
-                {newRpcListData?.map(item => (
+                {selectedRpc?.ercTokenList?.map(item => (
                   <View style={styles.dataRow}>
                     <Text style={[styles.cellText, {width: moderateScale(60)}]}>
                       {/* {item?.chainId} */}0
@@ -367,7 +406,7 @@ export default function DashboardHeader({route, navigation}) {
                       style={[
                         styles.cellText,
                         {
-                          width: moderateScale(200),
+                          width: moderateScale(150),
                           textAlign: 'left',
                         },
                       ]}>
@@ -376,15 +415,45 @@ export default function DashboardHeader({route, navigation}) {
                     <Text
                       style={[
                         styles.cellText,
-                        {width: moderateScale(150), textAlign: 'left'},
+                        {width: moderateScale(90), textAlign: 'left'},
                       ]}>
                       {item?.formattedBalance}
                     </Text>
+
+                    <TouchableOpacity
+                      onPress={() => {
+                        setSelectedErc(item);
+                        console.warn(item.formattedBalance);
+                        setShowSendTokenPopup(true);
+                      }}
+                      style={[
+                        styles.button,
+                        {
+                          backgroundColor: themeColors.white,
+                          paddingVertical: moderateScale(2),
+                        },
+                      ]}>
+                      <Text
+                        style={[
+                          {
+                            color: themeColors.black,
+                            // fontSize: moderateScale(10),
+                          },
+                        ]}>
+                        Send
+                      </Text>
+                      <CustomLucideIcon
+                        name="Send"
+                        color={themeColors.black}
+                        style={{marginLeft: moderateScale(5)}}
+                        size={moderateScale(8)}
+                      />
+                    </TouchableOpacity>
                   </View>
                 ))}
               </View>
             </ScrollView>
-          </ScrollView>
+          </View>
         </View>
       </View>
 
@@ -421,16 +490,76 @@ export default function DashboardHeader({route, navigation}) {
         closePopup={() => setAddTokenModalOpen(false)}
         onSuccessFunction={fetchBalances}
         networkData={rpcListData}
-        onAddDone={rpcObj => {
-          let tokenArray = [];
-          tokenArray.push(rpcObj);
-
-          Alert.alert('asdga', `${safeStringify(tokenArray)}`);
-
-          setNewRpcListData(tokenArray);
+        onAddDone={tokenObj => {
+          setRpcListData(prev =>
+            prev.map(network => {
+              if (network.chainId === tokenObj.network.dataObj.chainId) {
+                const updatedNetwork = {
+                  ...network,
+                  ercTokenList: [...(network.ercTokenList || []), tokenObj],
+                };
+                setSelectedRpc(updatedNetwork); // keep selected in sync
+                return updatedNetwork;
+              }
+              return network;
+            }),
+          );
         }}
         wallet={wallet}
         rpcUrl={'https://bsc-testnet.bnbchain.org'}
+      />
+
+      <SendErcTokenModal
+        popupOpen={showSendTokenPopup}
+        closePopup={() => setShowSendTokenPopup(false)}
+        onSuccessFunction={updatedErc => {
+          // 🔹 Update rpcListData
+          setRpcListData(prev =>
+            prev.map(network => {
+              // only update the network which has the ERC token we sent
+              if (
+                network.ercTokenList?.some(
+                  token => token.symbol === updatedErc.symbol,
+                )
+              ) {
+                return {
+                  ...network,
+                  ercTokenList: network.ercTokenList.map(token =>
+                    token.symbol === updatedErc.symbol
+                      ? {
+                          ...token,
+                          formattedBalance: updatedErc.formattedBalance,
+                        }
+                      : token,
+                  ),
+                };
+              }
+              return network;
+            }),
+          );
+
+          // 🔹 Keep selectedRpc in sync (if it's the same network)
+          setSelectedRpc(prev =>
+            prev?.ercTokenList?.some(
+              token => token.symbol === updatedErc.symbol,
+            )
+              ? {
+                  ...prev,
+                  ercTokenList: prev.ercTokenList.map(token =>
+                    token.symbol === updatedErc.symbol
+                      ? {
+                          ...token,
+                          formattedBalance: updatedErc.formattedBalance,
+                        }
+                      : token,
+                  ),
+                }
+              : prev,
+          );
+        }}
+        wallet={wallet}
+        rpcUrl={'https://bsc-testnet.bnbchain.org'}
+        selectedErc={selectedErc}
       />
 
       <CustomLoader visible={loading} />
@@ -510,7 +639,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingVertical: moderateScale(8),
     borderBottomWidth: 0.5,
-    borderBottomColor: themeColors.borderColor,
+    borderBottomColor: themeColors.white,
+    alignItems: 'center',
   },
   tokenCell: {
     flexDirection: 'row',

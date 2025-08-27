@@ -8,6 +8,7 @@ type CustomDropdownProps = {
   items: ItemType<string>[]; // dropdown items
   value: string | null; // selected value
   setValue: (value: string | null) => void; // callback for selection
+  setSelectedItem: (item: any) => void; // callback for selection
   placeholder?: string;
   containerStyle?: ViewStyle;
   dropdownStyle?: ViewStyle;
@@ -21,6 +22,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   placeholder = 'Select an option',
   containerStyle,
   dropdownStyle,
+  setSelectedItem,
   textStyle,
 }) => {
   const [open, setOpen] = useState(false);
@@ -34,6 +36,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
       setOpen={setOpen}
       setValue={setValue}
       setItems={setItems}
+      onSelectItem={setSelectedItem}
       placeholder={placeholder}
       containerStyle={[{width: moderateScale(100)}, containerStyle]}
       style={[

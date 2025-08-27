@@ -52,7 +52,7 @@ const SetPasswordScreen = ({route, navigation}) => {
     <View style={styles.container}>
       <View style={styles.mainContainer}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.pop()}
           style={styles.backButton}
           activeOpacity={0.7}>
           <CustomLucideIcon name="ArrowLeft" color={themeColors.white} />

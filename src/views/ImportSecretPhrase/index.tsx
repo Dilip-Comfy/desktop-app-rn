@@ -54,6 +54,8 @@ const ImportSecretPhrase = ({navigation}) => {
   };
 
   const handleProceed = async () => {
+    setLoading(true);
+
     const normalized = phraseWords
       .join(' ')
       .trim()
@@ -62,6 +64,7 @@ const ImportSecretPhrase = ({navigation}) => {
 
     if (!normalized) {
       Alert.alert('Error', 'Please enter your recovery phrase');
+      setLoading(false);
       return;
     }
 
@@ -72,20 +75,21 @@ const ImportSecretPhrase = ({navigation}) => {
         'Error',
         'Recovery phrase must be 12, 15, 18, 21, or 24 words',
       );
+      setLoading(false);
       return;
     }
 
     if (!validateMnemonic(normalized)) {
       Alert.alert('Error', 'Invalid recovery phrase');
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
     try {
       // index = 0 by default; change if you need a different account
       const wallet = walletFromMnemonic(normalized, 0);
-      setLoading(false);
       navigation.replace('SetPasswordScreen', {wallet});
+      setLoading(false);
       // navigation.replace('Dashboard', {wallet});
     } catch (err) {
       setLoading(false);
@@ -138,7 +142,10 @@ const ImportSecretPhrase = ({navigation}) => {
 
         <CustomButton
           text={'Continue'}
-          onPress={() => handleProceed()}
+          onPress={() => {
+            setLoading(true);
+            handleProceed();
+          }}
           backgroundColor={themeColors.white}
           btnTxtStyle={{
             fontSize: moderateScale(12),
@@ -154,7 +161,8 @@ const ImportSecretPhrase = ({navigation}) => {
           }}
         />
       </View>
-      <CustomLoader visible={loading} />
+
+      {loading && <CustomLoader visible={loading} />}
     </View>
   );
 };
